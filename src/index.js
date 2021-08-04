@@ -11,11 +11,9 @@ function getEmptyPlaces(matrix) {
 function findPossibleValues(matrix, i, j) {
     let possibles = [false, true, true, true, true, true, true, true, true, true]
 
-    for (let col = 0; col < matrix.length; col++) {
-        possibles[matrix[i][col]] = false;
-    }
-    for (let row = 0; row < matrix.length; row++) {
-        possibles[matrix[row][j]] = false;
+    for (let n = 0; n < matrix.length; n++) {
+        possibles[matrix[i][n]] = false;
+        possibles[matrix[n][j]] = false;
     }
 
     for (let row = Math.floor(i / 3) * 3; row < Math.floor(i / 3) * 3 + 3; row++) {
@@ -23,41 +21,37 @@ function findPossibleValues(matrix, i, j) {
             possibles[matrix[row][col]] = false;
         }
     }
-        let values = [];
-        for (let i in possibles) {
-            if (possibles[i])
-                values.push(i)
-        }
-
-        return [[i,j], values];
+    let values = [];
+    for (let i in possibles) {
+        if (possibles[i])
+            values.push(Number(i))
     }
 
-    module.exports = function solveSudoku(matrix) {
-        let empties = getEmptyPlaces(matrix);
-        console.log(getEmptyPlaces(matrix))
-        for (let place of empties) {
-            console.log(findPossibleValues(matrix, place[0], place[1]))
-        }
+    return [[i, j], values];
+}
 
-        console.log('--------------------------------------')
-    }
-
-    const matrix = [
-        [5, 3, 4, 6, 7, 8, 9, 0, 0],
-        [6, 7, 2, 1, 9, 5, 3, 4, 8],
-        [1, 9, 8, 3, 4, 2, 5, 6, 7],
-        [8, 5, 9, 7, 6, 1, 4, 2, 3],
-        [4, 2, 6, 8, 5, 3, 7, 9, 1],
-        [7, 1, 3, 9, 2, 4, 8, 5, 6],
-        [9, 6, 1, 5, 3, 7, 2, 8, 4],
-        [2, 8, 7, 4, 1, 9, 6, 3, 5],
-        [3, 4, 5, 2, 8, 6, 1, 7, 9]
-    ]
-
-function SolveALL(matrix){
-    if (getEmptyPlaces(matrix) && checkSolve(matrix))
+module.exports = function solveSudoku(matrix) {
+    let empties = getEmptyPlaces(matrix);
+    if (empties.length === 0)
         return matrix
     else {
-
+        let [[i, j], variants] = findShortVariant(matrix, empties)
+        for (let v of variants) {
+            matrix[i][j] = v
+            let check = solveSudoku(matrix)
+            if (check)
+                return solveSudoku(matrix)
+        }
+        matrix[i][j] = 0
+        return false
     }
+}
+
+function findShortVariant(matrix, empties){
+    let allVariants = []
+    for (let place of empties) {
+        allVariants.push(findPossibleValues(matrix, place[0], place[1]))
+    }
+    allVariants.sort((a, b)=>a[1].length-b[1].length)
+    return allVariants[0];
 }
